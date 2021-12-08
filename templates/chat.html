@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Anonymous Chat Room</title>
+    <link rel="stylesheet" href="../static/style.css" />
+    <link rel="stylesheet" href="../static/bootstrap.min.css" />
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.0/socket.io.js"
+      integrity="sha512-nYuHvSAhY5lFZ4ixSViOwsEKFvlxHMU2NHts1ILuJgOS6ptUmAGt/0i5czIgMOahKZ6JN84YFDA+mCdky7dD8A=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script type="text/javascript" charset="utf-8">
+      let socket;
+      document.addEventListener("DOMContentLoaded", () => {
+        socket = io.connect(
+          "http://" + document.domain + ":" + location.port + "/chat"
+        );
+        socket.on("connect", function () {
+          socket.emit("join", {});
+        });
+
+        socket.on("status", (data) => {
+          let chat = document.getElementById("chat");
+          let new_value = chat.value + "<" + data.msg + ">\n";
+          chat.value = new_value;
+          chat.scrollTo(0, chat.scrollHeight);
+        });
+
+        socket.on("message", (data) => {
+          let chat = document.getElementById("chat");
+          let new_value = chat.value + data.msg + "\n";
+          chat.value = new_value;
+          chat.scrollTo(0, chat.scrollHeight);
+        });
+
+        document.getElementById("send").addEventListener("click", (e) => {
+          let text = document.getElementById("text").value;
+          document.getElementById("text").value = "";
+          socket.emit("text", { msg: text });
+        });
+      });
+
+      const leave_room = () => {
+        socket.emit("left", {}, function () {
+          socket.disconnect();
+          // go back to the login page
+          window.location.href = "{{ url_for('index') }}";
+        });
+      };
+    </script>
+  </head>
+  <body class="text-center">
+    <div class="chatwindow">
+      <h2>Anonymous Chat Room</h2>
+      <h2>Room: {{ session['room'] }}</h2>
+      <br />
+      <textarea
+        id="chat"
+        cols="70"
+        rows="10"
+        placeholder="No messages yet. Start one..."
+      ></textarea
+      ><br />
+      <input
+        type="text"
+        id="text"
+        size="60"
+        placeholder="Enter your message here"
+        autofocus
+      />
+      <button id="send" class="btn btn-success">Send</button><br /><br />
+      <center>
+        <button class="btn btn-danger" onclick="leave_room();">
+          Leave this room
+        </button>
+      </center>
+    </div>
+  </body>
+</html>
