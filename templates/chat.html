@@ -16,7 +16,9 @@
     <script type="text/javascript" charset="utf-8">
       let socket;
       document.addEventListener("DOMContentLoaded", () => {
-        socket = io.connect(window.location.origin + "/chat");
+        socket = io.connect(
+          "wss://" + document.domain + ":" + location.port + "/chat"
+        );
         socket.on("connect", function () {
           socket.emit("join", {});
         });
